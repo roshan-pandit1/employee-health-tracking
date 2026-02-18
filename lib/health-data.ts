@@ -88,6 +88,52 @@ function generateStepsHistory(): VitalReading[] {
   }))
 }
 
+function generateRandomVitals() {
+  // Generate more realistic health data - biased toward normal/healthy ranges
+  // Most employees should be healthy, with only some warnings and few critical cases
+  
+  // Heart rate: Normal range 60-100, with some variation
+  const heartRate = Math.floor(60 + Math.random() * 40 + (Math.random() > 0.8 ? Math.random() * 20 : 0))
+  
+  // Blood oxygen: Normal range 95-100, rarely below 93
+  const bloodOxygen = Math.floor(95 + Math.random() * 5 + (Math.random() > 0.9 ? -Math.random() * 5 : 0))
+  
+  // Steps: Normal range 2000-12000, with some low activity days
+  const steps = Math.floor(2000 + Math.random() * 10000)
+  
+  // Sleep hours: Normal range 6-9, with some variation
+  const sleepHours = +(6 + Math.random() * 3 + (Math.random() > 0.85 ? -Math.random() * 2 : 0)).toFixed(1)
+  
+  // Sleep quality: Normal range 70-95, with some poor sleep nights
+  const sleepQuality = Math.floor(70 + Math.random() * 25 + (Math.random() > 0.8 ? -Math.random() * 30 : 0))
+  
+  // Stress level: Normal range 20-60, with some high stress cases
+  const stressLevel = Math.floor(20 + Math.random() * 40 + (Math.random() > 0.75 ? Math.random() * 30 : 0))
+  
+  // Temperature: Normal range 97.5-99.5
+  const temperature = +(97.5 + Math.random() * 2).toFixed(1)
+  
+  // Calories burned: Based on steps and activity
+  const caloriesBurned = Math.floor(800 + (steps / 1000) * 100 + Math.random() * 400)
+
+  return {
+    heartRate,
+    heartRateHistory: generateHistory(heartRate, 8, 12),
+    bloodOxygen,
+    bloodOxygenHistory: generateHistory(bloodOxygen, 1, 12),
+    steps,
+    stepsGoal: 10000,
+    stepsHistory: generateStepsHistory(),
+    sleepHours,
+    sleepQuality,
+    sleepHistory: generateSleepHistory(),
+    stressLevel,
+    stressHistory: generateHistory(stressLevel, 12, 12),
+    temperature,
+    caloriesBurned,
+  }
+}
+
 export function calculateFatigueScore(employee: {
   vitals: { sleepHours: number; sleepQuality: number; stressLevel: number; heartRate: number; steps: number }
 }): number {
@@ -167,22 +213,7 @@ const employeesRaw: Omit<Employee, "fatigue" | "burnout" | "status" | "alerts">[
     joinDate: "2022-03-15",
     watchConnected: true,
     lastSync: "2 min ago",
-    vitals: {
-      heartRate: 72,
-      heartRateHistory: generateHistory(72, 8, 12),
-      bloodOxygen: 98,
-      bloodOxygenHistory: generateHistory(98, 1, 12),
-      steps: 8450,
-      stepsGoal: 10000,
-      stepsHistory: generateStepsHistory(),
-      sleepHours: 7.5,
-      sleepQuality: 85,
-      sleepHistory: generateSleepHistory(),
-      stressLevel: 35,
-      stressHistory: generateHistory(35, 12, 12),
-      temperature: 98.2,
-      caloriesBurned: 1850,
-    },
+    vitals: generateRandomVitals(),
   },
   {
     id: "emp-002",
@@ -194,22 +225,7 @@ const employeesRaw: Omit<Employee, "fatigue" | "burnout" | "status" | "alerts">[
     joinDate: "2023-01-10",
     watchConnected: true,
     lastSync: "5 min ago",
-    vitals: {
-      heartRate: 88,
-      heartRateHistory: generateHistory(88, 10, 12),
-      bloodOxygen: 96,
-      bloodOxygenHistory: generateHistory(96, 2, 12),
-      steps: 3200,
-      stepsGoal: 10000,
-      stepsHistory: generateStepsHistory(),
-      sleepHours: 5.2,
-      sleepQuality: 42,
-      sleepHistory: generateSleepHistory(),
-      stressLevel: 72,
-      stressHistory: generateHistory(72, 10, 12),
-      temperature: 98.6,
-      caloriesBurned: 1200,
-    },
+    vitals: generateRandomVitals(),
   },
   {
     id: "emp-003",
@@ -221,22 +237,7 @@ const employeesRaw: Omit<Employee, "fatigue" | "burnout" | "status" | "alerts">[
     joinDate: "2021-07-20",
     watchConnected: true,
     lastSync: "1 min ago",
-    vitals: {
-      heartRate: 68,
-      heartRateHistory: generateHistory(68, 6, 12),
-      bloodOxygen: 99,
-      bloodOxygenHistory: generateHistory(99, 1, 12),
-      steps: 11200,
-      stepsGoal: 10000,
-      stepsHistory: generateStepsHistory(),
-      sleepHours: 8.1,
-      sleepQuality: 92,
-      sleepHistory: generateSleepHistory(),
-      stressLevel: 22,
-      stressHistory: generateHistory(22, 8, 12),
-      temperature: 97.9,
-      caloriesBurned: 2100,
-    },
+    vitals: generateRandomVitals(),
   },
   {
     id: "emp-004",
@@ -248,22 +249,7 @@ const employeesRaw: Omit<Employee, "fatigue" | "burnout" | "status" | "alerts">[
     joinDate: "2023-05-01",
     watchConnected: true,
     lastSync: "8 min ago",
-    vitals: {
-      heartRate: 102,
-      heartRateHistory: generateHistory(102, 12, 12),
-      bloodOxygen: 93,
-      bloodOxygenHistory: generateHistory(93, 2, 12),
-      steps: 1800,
-      stepsGoal: 10000,
-      stepsHistory: generateStepsHistory(),
-      sleepHours: 4.5,
-      sleepQuality: 30,
-      sleepHistory: generateSleepHistory(),
-      stressLevel: 85,
-      stressHistory: generateHistory(85, 8, 12),
-      temperature: 99.4,
-      caloriesBurned: 900,
-    },
+    vitals: generateRandomVitals(),
   },
   {
     id: "emp-005",
@@ -275,22 +261,7 @@ const employeesRaw: Omit<Employee, "fatigue" | "burnout" | "status" | "alerts">[
     joinDate: "2020-11-30",
     watchConnected: true,
     lastSync: "3 min ago",
-    vitals: {
-      heartRate: 76,
-      heartRateHistory: generateHistory(76, 7, 12),
-      bloodOxygen: 97,
-      bloodOxygenHistory: generateHistory(97, 1, 12),
-      steps: 6700,
-      stepsGoal: 10000,
-      stepsHistory: generateStepsHistory(),
-      sleepHours: 6.8,
-      sleepQuality: 68,
-      sleepHistory: generateSleepHistory(),
-      stressLevel: 55,
-      stressHistory: generateHistory(55, 15, 12),
-      temperature: 98.4,
-      caloriesBurned: 1600,
-    },
+    vitals: generateRandomVitals(),
   },
   {
     id: "emp-006",
@@ -302,22 +273,7 @@ const employeesRaw: Omit<Employee, "fatigue" | "burnout" | "status" | "alerts">[
     joinDate: "2022-09-12",
     watchConnected: true,
     lastSync: "1 min ago",
-    vitals: {
-      heartRate: 80,
-      heartRateHistory: generateHistory(80, 9, 12),
-      bloodOxygen: 97,
-      bloodOxygenHistory: generateHistory(97, 1, 12),
-      steps: 5200,
-      stepsGoal: 10000,
-      stepsHistory: generateStepsHistory(),
-      sleepHours: 6.2,
-      sleepQuality: 55,
-      sleepHistory: generateSleepHistory(),
-      stressLevel: 62,
-      stressHistory: generateHistory(62, 12, 12),
-      temperature: 98.5,
-      caloriesBurned: 1450,
-    },
+    vitals: generateRandomVitals(),
   },
   {
     id: "emp-007",
@@ -329,22 +285,7 @@ const employeesRaw: Omit<Employee, "fatigue" | "burnout" | "status" | "alerts">[
     joinDate: "2023-08-05",
     watchConnected: false,
     lastSync: "2 hours ago",
-    vitals: {
-      heartRate: 70,
-      heartRateHistory: generateHistory(70, 5, 12),
-      bloodOxygen: 98,
-      bloodOxygenHistory: generateHistory(98, 1, 12),
-      steps: 7400,
-      stepsGoal: 10000,
-      stepsHistory: generateStepsHistory(),
-      sleepHours: 7.8,
-      sleepQuality: 80,
-      sleepHistory: generateSleepHistory(),
-      stressLevel: 30,
-      stressHistory: generateHistory(30, 10, 12),
-      temperature: 98.1,
-      caloriesBurned: 1700,
-    },
+    vitals: generateRandomVitals(),
   },
   {
     id: "emp-008",
@@ -356,22 +297,7 @@ const employeesRaw: Omit<Employee, "fatigue" | "burnout" | "status" | "alerts">[
     joinDate: "2022-02-18",
     watchConnected: true,
     lastSync: "4 min ago",
-    vitals: {
-      heartRate: 92,
-      heartRateHistory: generateHistory(92, 10, 12),
-      bloodOxygen: 95,
-      bloodOxygenHistory: generateHistory(95, 2, 12),
-      steps: 2900,
-      stepsGoal: 10000,
-      stepsHistory: generateStepsHistory(),
-      sleepHours: 5.5,
-      sleepQuality: 45,
-      sleepHistory: generateSleepHistory(),
-      stressLevel: 68,
-      stressHistory: generateHistory(68, 10, 12),
-      temperature: 98.8,
-      caloriesBurned: 1100,
-    },
+    vitals: generateRandomVitals(),
   },
 ]
 

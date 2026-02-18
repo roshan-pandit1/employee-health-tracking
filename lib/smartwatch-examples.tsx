@@ -1,5 +1,39 @@
 // Example usage of the Smartwatch Data Collection System
 
+// Web Bluetooth API type declarations
+declare global {
+  interface Navigator {
+    bluetooth: {
+      requestDevice(options?: RequestDeviceOptions): Promise<BluetoothDevice>
+    }
+  }
+
+  interface RequestDeviceOptions {
+    filters?: Array<{ services: string[] }>
+  }
+
+  interface BluetoothDevice {
+    id?: string
+    name?: string
+    gatt?: BluetoothRemoteGATTServer
+  }
+
+  interface BluetoothRemoteGATTServer {
+    connect(): Promise<BluetoothRemoteGATTServer>
+    getPrimaryService(service: string): Promise<BluetoothRemoteGATTService>
+  }
+
+  interface BluetoothRemoteGATTService {
+    getCharacteristic(characteristic: string): Promise<BluetoothRemoteGATTCharacteristic>
+  }
+
+  interface BluetoothRemoteGATTCharacteristic {
+    readValue(): Promise<DataView>
+    startNotifications(): Promise<BluetoothRemoteGATTCharacteristic>
+    addEventListener(type: string, listener: (event: Event) => void): void
+  }
+}
+
 import {
   processSmartwatchData,
   registerSmartwatch,

@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import * as React from "react"
 import {
   Users,
   ShieldCheck,
@@ -33,6 +34,33 @@ import {
   Pie,
   Cell,
 } from "recharts"
+import { Calendar } from "@/components/ui/calendar"
+
+function RealTimeClock() {
+  const [time, setTime] = React.useState(new Date())
+
+  React.useEffect(() => {
+    const timer = setInterval(() => {
+      setTime(new Date())
+    }, 1000)
+
+    return () => clearInterval(timer)
+  }, [])
+
+  return (
+    <div className="flex items-center gap-2 text-sm font-mono text-muted-foreground">
+      <Watch className="h-4 w-4" />
+      <span>
+        {time.toLocaleTimeString('en-US', {
+          hour12: true,
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
+        })}
+      </span>
+    </div>
+  )
+}
 
 function FatigueDistribution({ employees }: { employees: Employee[] }) {
   const ranges = [
@@ -238,6 +266,159 @@ function QuickEmployeeList({ employees }: { employees: Employee[] }) {
   )
 }
 
+function WatchActivityCalendar({ employees }: { employees: Employee[] }) {
+  const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(new Date())
+  const [isExpanded, setIsExpanded] = React.useState(false)
+
+  // Simulate detailed daily activity data - in real app, this would come from API
+  const getDetailedActivityForDate = (date: Date) => {
+    const connectedEmployees = employees.filter(e => e.watchConnected)
+    return connectedEmployees.map(emp => {
+      // Simulate activity duration and times
+      const isActive = Math.random() > 0.3 // 70% chance of being active on a given day
+      if (!isActive) return null
+
+      const startHour = 8 + Math.floor(Math.random() * 8) // 8 AM to 4 PM start
+      const duration = 4 + Math.random() * 6 // 4-10 hours
+      const endHour = Math.min(18, startHour + duration) // End by 6 PM max
+
+      return {
+        employee: emp,
+        startTime: `${startHour.toFixed(0).padStart(2, '0')}:00`,
+        endTime: `${endHour.toFixed(0).padStart(2, '0')}:00`,
+        duration: Math.round(duration * 10) / 10,
+        active: true
+      }
+    }).filter((activity): activity is NonNullable<typeof activity> => activity !== null)
+  }
+
+  const modifiers = {
+    high: (date: Date) => {
+      const activities = getDetailedActivityForDate(date)
+      const connected = employees.filter(e => e.watchConnected).length
+      return activities.length >= connected * 0.8
+    },
+    medium: (date: Date) => {
+      const activities = getDetailedActivityForDate(date)
+      const connected = employees.filter(e => e.watchConnected).length
+      return activities.length >= connected * 0.5 && activities.length < connected * 0.8
+    },
+    low: (date: Date) => {
+      const activities = getDetailedActivityForDate(date)
+      const connected = employees.filter(e => e.watchConnected).length
+      return activities.length < connected * 0.5
+    },
+  }
+
+  const modifiersStyles = {
+    high: {
+      backgroundColor: 'hsl(var(--success))',
+      color: 'white',
+      fontWeight: 'bold',
+    },
+    medium: {
+      backgroundColor: 'hsl(var(--warning))',
+      color: 'white',
+    },
+    low: {
+      backgroundColor: 'hsl(var(--destructive))',
+      color: 'white',
+    },
+  }
+
+  const selectedDateActivities = selectedDate ? getDetailedActivityForDate(selectedDate) : []
+  const totalActive = selectedDateActivities.length
+  const totalConnected = employees.filter(e => e.watchConnected).length
+
+  return (
+    <div className="rounded-xl border border-border bg-card p-5">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-sm font-semibold text-card-foreground">Watch Activity Calendar</h3>
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="text-xs font-medium text-[hsl(var(--primary))] hover:underline"
+        >
+          {isExpanded ? 'Collapse' : 'Expand Details'}
+        </button>
+      </div>
+      
+      <div className="space-y-4">
+        <Calendar
+          mode="single"
+          selected={selectedDate}
+          onSelect={setSelectedDate}
+          modifiers={modifiers}
+          modifiersStyles={modifiersStyles}
+          className="rounded-md border-0"
+        />
+        
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded bg-[hsl(var(--success))]"></div>
+            <span>High Activity</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded bg-[hsl(var(--warning))]"></div>
+            <span>Medium Activity</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded bg-[hsl(var(--destructive))]"></div>
+            <span>Low Activity</span>
+          </div>
+        </div>
+
+        {selectedDate && (
+          <div className="text-center p-3 bg-secondary/50 rounded-lg">
+            <p className="text-sm font-medium">
+              {selectedDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {totalActive} of {totalConnected} connected watches active
+            </p>
+          </div>
+        )}
+
+        {isExpanded && selectedDate && selectedDateActivities.length > 0 && (
+          <div className="border-t pt-4">
+            <h4 className="text-sm font-semibold text-card-foreground mb-3">Active Watches Details</h4>
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {selectedDateActivities.map((activity, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-secondary/30 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-secondary-foreground">
+                      {activity.employee.avatar}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-card-foreground">{activity.employee.name}</p>
+                      <p className="text-xs text-muted-foreground">{activity.employee.role}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs font-mono text-card-foreground">
+                      {activity.startTime} - {activity.endTime}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {activity.duration}h active
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {isExpanded && selectedDate && selectedDateActivities.length === 0 && (
+          <div className="border-t pt-4">
+            <p className="text-sm text-muted-foreground text-center py-4">
+              No watch activity recorded for this date
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export function DashboardOverview() {
   const stats = getOverviewStats()
   const employees = getEmployees()
@@ -245,11 +426,14 @@ export function DashboardOverview() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold text-foreground text-balance">Wellness Dashboard</h1>
-        <p className="text-sm text-muted-foreground">
-          Monitor your team&apos;s health metrics from smartwatch data in real-time.
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-2xl font-bold text-foreground text-balance">Wellness Dashboard</h1>
+          <p className="text-sm text-muted-foreground">
+            Monitor your team&apos;s health metrics from smartwatch data in real-time.
+          </p>
+        </div>
+        <RealTimeClock />
       </div>
 
       {/* Top stats */}
@@ -314,6 +498,9 @@ export function DashboardOverview() {
 
       {/* Stress chart */}
       <TeamStressChart employees={employees} />
+
+      {/* Watch Activity Calendar */}
+      <WatchActivityCalendar employees={employees} />
 
       {/* Lists row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
