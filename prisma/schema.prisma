@@ -1,0 +1,128 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Employee {
+  id            String      @id @default(cuid())
+  name          String
+  email         String      @unique
+  role          String
+  department    String
+  avatar        String?
+  age           Int?
+  joinDate      DateTime    @default(now())
+  watchConnected Boolean    @default(false)
+  lastSync      DateTime    @default(now())
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  vitals        VitalReading[]
+  alerts        Alert[]
+  burnoutScores BurnoutScore[]
+
+  @@index([department])
+}
+
+model VitalReading {
+  id           String   @id @default(cuid())
+  employeeId   String
+  employee     Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  // Heart Rate
+  heartRate    Int?
+  
+  // Blood Oxygen (SpO2)
+  bloodOxygen  Int?
+  
+  // Steps
+  steps        Int?
+  
+  // Sleep
+  sleepHours   Float?
+  sleepQuality Int?
+  
+  // Stress Level
+  stressLevel  Int?
+  
+  // Temperature
+  temperature  Float?
+  
+  // Calories Burned
+  caloriesBurned Int?
+
+  // Timestamp of the reading
+  timestamp    DateTime  @default(now())
+  
+  createdAt    DateTime  @default(now())
+
+  @@index([employeeId])
+  @@index([timestamp])
+  @@index([employeeId, timestamp])
+}
+
+model Alert {
+  id            String   @id @default(cuid())
+  employeeId    String
+  employee      Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  type          String   // heart_rate, blood_oxygen, sleep, stress, fatigue, burnout, temperature
+  severity      String   // info, warning, critical
+  message       String
+  suggestion    String?
+  
+  acknowledged  Boolean  @default(false)
+  acknowledgedAt DateTime?
+  
+  timestamp     DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([employeeId])
+  @@index([severity])
+  @@index([acknowledged])
+  @@index([timestamp])
+}
+
+model BurnoutScore {
+  id            String   @id @default(cuid())
+  employeeId    String
+  employee      Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  score         Float    // 0-100
+  risk          String   // low, moderate, high, critical
+  
+  fatigueScore  Float?
+  stressScore   Float?
+  sleepScore    Float?
+  
+  timestamp     DateTime @default(now())
+  createdAt     DateTime @default(now())
+
+  @@index([employeeId])
+  @@index([timestamp])
+  @@index([risk])
+}
+
+model SmartwatchSync {
+  id            String   @id @default(cuid())
+  employeeId    String
+  
+  syncedAt      DateTime @default(now())
+  duration      Int      // milliseconds
+  status        String   // success, failed, partial
+  recordsCount  Int      // how many vital readings were synced
+  errorMessage  String?
+  
+  createdAt     DateTime @default(now())
+
+  @@index([employeeId])
+  @@index([syncedAt])
+}
